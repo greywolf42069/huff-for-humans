@@ -1,0 +1,21 @@
+{
+  "name": "Huff for Humans",
+  "short_name": "Huff",
+  "description": "Learn Huff assembly with a simple ERC‑20 token – gas savings and sovereign stack management.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0b0c10",
+  "theme_color": "#ff6b6b",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

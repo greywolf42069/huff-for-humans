@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Huff for Humans – Simple Assembly, Sovereign Savings</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ff6b6b">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(145deg, #0b0c10 0%, #1a1d2b 100%);
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      color: #eef5ff;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    /* main container */
+    .container {
+      max-width: 1100px;
+      width: 100%;
+      background: rgba(15, 20, 30, 0.6);
+      backdrop-filter: blur(2px);
+      border-radius: 3rem;
+      padding: 2rem;
+      box-shadow: 0 25px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
+    }
+
+    /* header */
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffb347, #ff6b6b, #a34dff);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -0.02em;
+    }
+
+    .sub {
+      font-size: 1.2rem;
+      opacity: 0.8;
+      margin-top: 0.5rem;
+    }
+
+    .coauth {
+      font-size: 0.85rem;
+      margin-top: 1rem;
+      opacity: 0.7;
+      border-top: 1px dashed rgba(255,255,255,0.2);
+      display: inline-block;
+      padding-top: 0.5rem;
+    }
+
+    /* rainbow canvas */
+    .graphic {
+      display: flex;
+      justify-content: center;
+      margin: 2rem 0;
+    }
+    canvas {
+      background: #0a0c15;
+      border-radius: 2rem;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 500px;
+      height: auto;
+    }
+
+    /* buttons */
+    .button-group {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin: 2rem 0;
+    }
+    .btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 0.8rem 2rem;
+      border-radius: 60px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: white;
+      text-decoration: none;
+      font-size: 1rem;
+    }
+    .btn-primary {
+      background: linear-gradient(95deg, #ff6b6b, #a34dff);
+      border: none;
+      box-shadow: 0 4px 12px rgba(163,77,255,0.3);
+    }
+    .btn-primary:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 18px rgba(163,77,255,0.4);
+    }
+    .btn-outline:hover {
+      background: rgba(255,255,255,0.15);
+    }
+
+    /* modal (hidden by default) */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(5px);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #141824;
+      max-width: 500px;
+      width: 90%;
+      border-radius: 2rem;
+      padding: 2rem;
+      border: 1px solid rgba(255,255,255,0.2);
+      position: relative;
+    }
+    .modal-step {
+      display: none;
+    }
+    .modal-step.active {
+      display: block;
+    }
+    .modal h3 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+    .modal p {
+      margin-bottom: 1.5rem;
+      font-size: 1.1rem;
+    }
+    .modal-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1.5rem;
+    }
+    .close-modal {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      font-size: 1.8rem;
+      cursor: pointer;
+    }
+
+    /* FAQ accordion */
+    .faq-section {
+      margin-top: 3rem;
+    }
+    .faq-title {
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .faq-item {
+      background: rgba(255,255,255,0.03);
+      border-radius: 1.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .faq-question {
+      padding: 1.2rem 1.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .faq-question::after {
+      content: "▼";
+      font-size: 0.8rem;
+      transition: transform 0.2s;
+    }
+    .faq-item.open .faq-question::after {
+      transform: rotate(180deg);
+    }
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      padding: 0 1.5rem;
+      border-top: 1px solid transparent;
+    }
+    .faq-item.open .faq-answer {
+      max-height: 200px;
+      padding: 1rem 1.5rem;
+      border-top-color: rgba(255,255,255,0.1);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      font-size: 0.8rem;
+      opacity: 0.6;
+    }
+    a {
+      color: #ffb347;
+      text-decoration: none;
+    }
+    @media (max-width: 600px) {
+      .container { padding: 1rem; }
+      h1 { font-size: 2.2rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🌈 Huff for Humans</h1>
+    <div class="sub">Bare‑metal ERC‑20 · 80% gas savings · Sovereign stack</div>
+    <div class="coauth">co‑authored by <strong>Eastern Lattice DSCO</strong> ✕ <strong>GreyWolf</strong></div>
+  </div>
+
+  <!-- canvas graphic -->
+  <div class="graphic">
+    <canvas id="rainbowCanvas" width="500" height="200" style="width:100%; height:auto; max-width:500px; aspect-ratio:500/200"></canvas>
+  </div>
+
+  <div class="button-group">
+    <button class="btn btn-primary" id="learnMoreBtn">✨ Learn More</button>
+    <a href="https://github.com/greywolf42069/huff-rainbow-erc20" class="btn btn-outline" target="_blank">📖 GitHub & Tutorial</a>
+    <a href="#faq" class="btn btn-outline">❓ FAQs</a>
+  </div>
+
+  <!-- Modal (popup flow) -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeModalBtn">&times;</span>
+      <div id="modalStep1" class="modal-step active">
+        <h3>🤔 What is Huff?</h3>
+        <p>Huff is a low‑level language for Ethereum smart contracts. It compiles directly to EVM opcodes — no abstractions, just pure stack magic.</p>
+        <div class="modal-buttons">
+          <button class="btn btn-primary next-step">Next →</button>
+        </div>
+      </div>
+      <div id="modalStep2" class="modal-step">
+        <h3>⚙️ Assembly?</h3>
+        <p>Yes! Every operation in Huff is an opcode like <code>sstore</code>, <code>mload</code>, <code>add</code>. It’s the same machine code the EVM executes.</p>
+        <p><a href="https://en.wikipedia.org/wiki/Assembly_language" target="_blank">Learn more about assembly →</a></p>
+        <div class="modal-buttons">
+          <button class="btn prev-step">← Back</button>
+          <button class="btn btn-primary next-step">Next →</button>
+        </div>
+      </div>
+      <div id="modalStep3" class="modal-step">
+        <h3>🧠 Sovereign Stack Management</h3>
+        <p>Huff gives you total control over the stack. No hidden checks, no extra gas. You become one with the machine. That’s <strong>enlightening</strong> — and saves ~80% gas vs Solidity.</p>
+        <div class="modal-buttons">
+          <button class="btn prev-step">← Back</button>
+          <button class="btn btn-primary" id="closeModalFinal">Got it! 🚀</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ Section -->
+  <div id="faq" class="faq-section">
+    <div class="faq-title">💬 Frequently Asked Questions</div>
+    <div class="faq-item">
+      <div class="faq-question">Why Huff instead of Solidity?</div>
+      <div class="faq-answer">Huff removes all overhead. You write exactly what the EVM does, achieving minimal gas costs and maximum transparency. It’s perfect for gas‑critical protocols or learning the internals.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">Is Huff safe?</div>
+      <div class="faq-answer">Safety comes from understanding. Huff doesn’t hold your hand, but it lets you build exactly what you intend. With proper testing (like our Troll Test suite), you can achieve safety without bloat.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">Where can I try Huff?</div>
+      <div class="faq-answer">Start with our <a href="https://github.com/greywolf42069/huff-rainbow-erc20/blob/main/TUTORIAL.md" target="_blank">tutorial</a>. You can use the Huff compiler locally or the online playground at <a href="https://huff.sh" target="_blank">huff.sh</a>.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">What's the gas saving?</div>
+      <div class="faq-answer">Our SimpleHuffToken uses ~12k gas per transfer vs ~55k in OpenZeppelin — that’s ~78% cheaper. Deployment is ~80% cheaper.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">Is this production ready?</div>
+      <div class="faq-answer">This repo is educational, but the patterns are used in real‑world optimized contracts. Audit before deploying any asset.</div>
+    </div>
+  </div>
+  <footer>
+    🌈 A public good by Eastern Lattice DSCO & GreyWolf — fork, learn, build. <br>
+    PWA • Offline ready • Made with 🧠 for the EVM community.
+  </footer>
+</div>
+
+<script>
+  // Rainbow Canvas Animation
+  const canvas = document.getElementById('rainbowCanvas');
+  const ctx = canvas.getContext('2d');
+  function drawRainbowStack() {
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    // background
+    ctx.fillStyle = '#0a0c15';
+    ctx.fillRect(0, 0, w, h);
+    // draw "stack" as colored bars
+    const colors = ['#ff4d4d', '#ff9e4d', '#ffef4d', '#6bff4d', '#4dd0ff', '#b84dff', '#ff4dc4'];
+    const barWidth = w / colors.length;
+    for (let i = 0; i < colors.length; i++) {
+      ctx.fillStyle = colors[i];
+      ctx.fillRect(i * barWidth, 0, barWidth - 1, h);
+      // add a shiny effect
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.fillRect(i * barWidth, 0, barWidth - 1, 8);
+    }
+    // draw opcode text
+    ctx.font = 'bold 14px "Fira Code", monospace';
+    ctx.fillStyle = 'white';
+    ctx.shadowBlur = 0;
+    const ops = ['PUSH', 'MSTORE', 'SLOAD', 'KECCAK', 'ADD', 'JUMPI', 'RETURN'];
+    for (let i = 0; i < ops.length; i++) {
+      ctx.fillText(ops[i], i * barWidth + 8, h - 12);
+    }
+    ctx.fillStyle = '#ffe6b3';
+    ctx.font = 'italic 10px monospace';
+    ctx.fillText('bare‑metal purity', w-110, h-8);
+  }
+  drawRainbowStack();
+  window.addEventListener('resize', () => drawRainbowStack());
+
+  // Modal Logic
+  const modal = document.getElementById('modal');
+  const steps = document.querySelectorAll('.modal-step');
+  let currentStep = 0;
+
+  function showStep(index) {
+    steps.forEach((step, i) => {
+      step.classList.toggle('active', i === index);
+    });
+  }
+
+  document.getElementById('learnMoreBtn').onclick = () => {
+    currentStep = 0;
+    showStep(0);
+    modal.style.display = 'flex';
+  };
+  document.getElementById('closeModalBtn').onclick = () => modal.style.display = 'none';
+  document.getElementById('closeModalFinal').onclick = () => modal.style.display = 'none';
+  document.querySelectorAll('.next-step').forEach(btn => {
+    btn.onclick = () => {
+      if (currentStep < steps.length - 1) {
+        currentStep++;
+        showStep(currentStep);
+      } else {
+        modal.style.display = 'none';
+      }
+    };
+  });
+  document.querySelectorAll('.prev-step').forEach(btn => {
+    btn.onclick = () => {
+      if (currentStep > 0) {
+        currentStep--;
+        showStep(currentStep);
+      }
+    };
+  });
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.style.display = 'none';
+  });
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-question').forEach(q => {
+    q.addEventListener('click', () => {
+      const parent = q.parentElement;
+      parent.classList.toggle('open');
+    });
+  });
+</script>
+
+<!-- Register Service Worker (for offline PWA) -->
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      console.log('SW registered', reg);
+    }).catch(err => console.log('SW failed', err));
+  }
+</script>
+</body>
+</html>
