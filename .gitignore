@@ -1,0 +1,11 @@
+# Foundry
+out/
+cache/
+broadcast/
+
+# Huff scratch output
+bytecode_raw.txt
+
+# Editors / OS
+.DS_Store
+*.swp

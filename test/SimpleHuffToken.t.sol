@@ -425,7 +425,7 @@ contract SimpleHuffTokenTest is Test {
     ) internal view returns (bytes32) {
         bytes32 structHash = keccak256(
             abi.encode(
-                0x6e71edae12b1b97f4d1f60370fea2543b90042d7b3d644eae9740da8db28d22a,
+                0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9,
                 _owner,
                 _spender,
                 _value,

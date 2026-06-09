@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  test:
+    name: Compile Huff + Foundry tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Install Huff
+        run: |
+          curl -L get.huff.sh | bash
+          echo "$HOME/.huff/bin" >> "$GITHUB_PATH"
+          "$HOME/.huff/bin/huffup"
+
+      - name: Show toolchain versions
+        run: |
+          forge --version
+          huffc --version
+
+      - name: Verify committed bytecode matches Huff source
+        run: make verify-bytecode
+
+      - name: Run test suite
+        run: forge test -vvv
