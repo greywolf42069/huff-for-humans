@@ -18,11 +18,16 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
-      - name: Install Huff
+      - name: Install Huff (huffc 0.3.2)
         run: |
-          curl -L get.huff.sh | bash
+          mkdir -p "$HOME/.huff/bin"
+          # Pull the compiler binary straight from the GitHub release rather than
+          # get.huff.sh, which intermittently returns an empty reply on CI.
+          curl -fsSL -o /tmp/huff.tar.gz \
+            https://github.com/huff-language/huff-rs/releases/download/nightly/huff_nightly_linux_amd64.tar.gz
+          tar -xzf /tmp/huff.tar.gz -C "$HOME/.huff/bin"
+          chmod +x "$HOME/.huff/bin/huffc"
           echo "$HOME/.huff/bin" >> "$GITHUB_PATH"
-          "$HOME/.huff/bin/huffup"
 
       - name: Show toolchain versions
         run: |
