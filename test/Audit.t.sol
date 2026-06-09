@@ -199,14 +199,45 @@ contract SimpleHuffTokenAuditTest is Test {
         token.burnFrom(owner, 100e18);
     }
 
-    // ── README claim: runtime bytecode is 1823 bytes ────────────────────────
-    function test_runtimeCodeSize_is1823() public view {
+    // ── README claim: runtime bytecode is 1829 bytes ────────────────────────
+    function test_runtimeCodeSize_is1829() public view {
         uint256 size;
         address t = address(token);
         assembly {
             size := extcodesize(t)
         }
-        assertEq(size, 1823, "runtime size drifted from documented 1823 bytes");
+        assertEq(size, 1829, "runtime size drifted from documented 1829 bytes");
+    }
+
+    // ── nonpayable: ETH sent with any call reverts and is never trapped ─────
+    function test_nonpayable_rejectsEtherOnCall() public {
+        vm.deal(address(this), 1 ether);
+        // A nonpayable function called with value must revert (no withdraw path
+        // exists, so accepting ETH would lock it forever).
+        (bool ok, ) = address(token).call{value: 1}(
+            abi.encodeWithSelector(IHuffToken.transfer.selector, spender, 0)
+        );
+        assertFalse(ok, "call with ETH should revert");
+        assertEq(address(token).balance, 0, "token must not hold ETH");
+    }
+
+    function test_nonpayable_rejectsEtherOnView() public {
+        vm.deal(address(this), 1 ether);
+        (bool ok, ) = address(token).call{value: 1}(
+            abi.encodeWithSelector(IHuffToken.totalSupply.selector)
+        );
+        assertFalse(ok, "view call with ETH should revert");
+        assertEq(address(token).balance, 0);
+    }
+
+    function test_nonpayable_zeroValueStillWorks() public {
+        // Regression: the guard must only reject nonzero value.
+        token.mint(address(this), 100);
+        (bool ok, ) = address(token).call{value: 0}(
+            abi.encodeWithSelector(IHuffToken.transfer.selector, spender, 10)
+        );
+        assertTrue(ok, "zero-value call should succeed");
+        assertEq(token.balanceOf(spender), 10);
     }
 
     function test_permit_standardWalletFlow_endToEnd() public {

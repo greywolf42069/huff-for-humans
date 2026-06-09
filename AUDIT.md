@@ -6,7 +6,7 @@ Scope: [`SimpleHuffToken.huff`](./SimpleHuffToken.huff) (v3.0), the compiled
 Method: manual review of the Huff/EVM logic (stack-effect tracing of every macro and
 branch), reconstruction of the EIP-712/EIP-2612 constants from their canonical strings,
 and an adversarial Foundry suite (`test/Audit.t.sol`) that checks the contract against
-the **standard** rather than against its own constants. All 85 tests pass after the
+the **standard** rather than against its own constants. All 93 tests pass after the
 fixes below.
 
 ---
@@ -99,6 +99,26 @@ affected, and no prior test asserted the permit event.
 event path's indexed ordering is checked (the original suite only checked
 transfer/mint/approve).
 
+### L-1 — Functions accepted ETH despite the `nonpayable` ABI (Fixed)
+
+**Severity:** Low (fund safety / ABI conformance)
+
+The dispatcher never checked `callvalue`, so any call carrying ETH — e.g.
+`transfer{value: 1 ether}(...)` — was silently accepted. The contract has no `withdraw`
+path, so that ETH would be **locked forever**. Solidity emits this guard automatically for
+`nonpayable` functions; the hand-written Huff omitted it, contradicting the `nonpayable`
+declarations in the ABI.
+
+**Fix:** a single `callvalue notPayable jumpi` at the top of `MAIN` — no function is
+payable, so any non-zero value reverts before dispatch (~6 bytes; runtime grew
+1823 → 1829).
+
+**Regression guard:** `test_nonpayable_rejectsEtherOnCall`,
+`test_nonpayable_rejectsEtherOnView`, and `test_nonpayable_zeroValueStillWorks`.
+
+> Note: `SELFDESTRUCT` and block-reward payments can still force ETH into *any* contract
+> address — that is unpreventable at the EVM level and not specific to this token.
+
 ---
 
 ## Verified correct (no change required)
@@ -143,5 +163,5 @@ transfer/mint/approve).
 ```bash
 git submodule update --init --recursive
 make verify-bytecode   # asserts bytecode.txt matches the Huff source
-make test              # 85 tests, 0 failures
+make test              # 93 tests, 0 failures
 ```
