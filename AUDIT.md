@@ -70,6 +70,34 @@ for the version.
 **Regression guard:** `test/Audit.t.sol::test_domainSeparator_matchesEIP712` and
 `test_typehashes_matchStrings` reconstruct the domain separator and both typehashes from
 their canonical strings and assert equality, so any future drift fails CI.
+`test_permit_standardWalletFlow_endToEnd` goes further: it builds the entire permit
+digest the way an off-chain wallet does — from the published EIP-712 strings, the chain
+id and the contract address, never reading the on-chain `DOMAIN_SEPARATOR` — then submits
+the signature and asserts the allowance, nonce and `Approval` event. This is the
+end-to-end proof of the "interoperable with standard wallets" claim.
+
+### M-1 — `permit` emitted `Approval` with `owner`/`spender` swapped (Fixed)
+
+**Severity:** Medium (event correctness / off-chain accounting)
+
+The `permit` path emitted `Approval(spender, owner, value)` instead of
+`Approval(owner, spender, value)` — the two indexed topics were pushed in the wrong order:
+
+```huff
+0x04 calldataload 0x24 calldataload   // owner, then spender → topic1=spender, topic2=owner
+```
+
+The state change (the allowance) was correct, but the emitted event was backwards. Any
+indexer, subgraph or dApp reconstructing allowances from `Approval` logs would attribute
+the approval to the wrong pair. The regular `approve` path was correct; only `permit` was
+affected, and no prior test asserted the permit event.
+
+**Fix:** push `spender` before `owner` so `log3` records `topic1=owner, topic2=spender`.
+
+**Regression guard:** the end-to-end permit test now uses `vm.expectEmit`, and
+`test_event_transferFrom` / `test_event_burn` / `test_event_burnFrom` were added so every
+event path's indexed ordering is checked (the original suite only checked
+transfer/mint/approve).
 
 ---
 

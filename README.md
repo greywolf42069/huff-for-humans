@@ -84,11 +84,11 @@ docs-old/                     <- Original "Huff for Humans" PWA tutorial
 
 ## Test Suite
 
-**85 tests across 3 suites. 0 failures.**
+**90 tests across 3 suites. 0 failures.**
 
 ```
 test/SimpleHuffToken.t.sol  — 68 tests  (smoke, ERC-20 units, events, permit, fuzz, monkey)
-test/Audit.t.sol            — 13 tests  (EIP-712/2612 standards compliance, malleability,
+test/Audit.t.sol            — 18 tests  (EIP-712/2612 standards compliance, malleability,
                                           nonce sequencing, arithmetic limits, conservation)
 test/Debug.t.sol            —  4 tests  (raw low-level call harness)
 ```
@@ -99,9 +99,10 @@ typehash fails CI immediately.
 
 ## Audit
 
-See [`AUDIT.md`](./AUDIT.md) for the full findings. Two **High-severity** EIP-2612
-interoperability bugs were found and fixed (incorrect `PERMIT_TYPEHASH` and an
-incorrectly-padded name/version hash in the domain separator), plus documented known
+See [`AUDIT.md`](./AUDIT.md) for the full findings. Three bugs were found and fixed:
+two **High-severity** EIP-2612 interoperability bugs (incorrect `PERMIT_TYPEHASH` and an
+incorrectly-padded name/version hash in the domain separator) and one **Medium** event
+bug (`permit` emitted `Approval` with `owner`/`spender` swapped), plus documented known
 limitations.
 
 ## License

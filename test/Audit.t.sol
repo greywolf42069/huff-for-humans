@@ -159,6 +159,95 @@ contract SimpleHuffTokenAuditTest is Test {
         assertEq(token.allowance(owner, spender), value, "allowance changed on replay");
     }
 
+    // ── DEFINITIVE EIP-2612 interop proof ──────────────────────────────────
+    // Reconstruct the permit digest exactly the way an off-chain wallet
+    // (ethers/viem/MetaMask) does: purely from the published EIP-712 strings,
+    // the chain id and the contract address — WITHOUT ever reading the
+    // contract's stored DOMAIN_SEPARATOR. If permit accepts this signature and
+    // emits Approval, the "full EIP-2612 / interoperable" claim is proven.
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    // ── every event path emits the correct indexed ordering ─────────────────
+    // The original suite only checked transfer/mint/approve. Permit's Approval
+    // was emitted with owner/spender swapped (now fixed); these lock the rest.
+    function test_event_transferFrom() public {
+        token.mint(owner, 1000e18);
+        vm.prank(owner);
+        token.approve(spender, 1000e18);
+        vm.prank(spender);
+        vm.expectEmit(true, true, false, true);
+        emit Transfer(owner, address(0xCAFE), 250e18);
+        token.transferFrom(owner, address(0xCAFE), 250e18);
+    }
+
+    function test_event_burn() public {
+        token.mint(owner, 1000e18);
+        vm.prank(owner);
+        vm.expectEmit(true, true, false, true);
+        emit Transfer(owner, zero, 100e18);
+        token.burn(100e18);
+    }
+
+    function test_event_burnFrom() public {
+        token.mint(owner, 1000e18);
+        vm.prank(owner);
+        token.approve(spender, 1000e18);
+        vm.prank(spender);
+        vm.expectEmit(true, true, false, true);
+        emit Transfer(owner, zero, 100e18);
+        token.burnFrom(owner, 100e18);
+    }
+
+    // ── README claim: runtime bytecode is 1823 bytes ────────────────────────
+    function test_runtimeCodeSize_is1823() public view {
+        uint256 size;
+        address t = address(token);
+        assembly {
+            size := extcodesize(t)
+        }
+        assertEq(size, 1823, "runtime size drifted from documented 1823 bytes");
+    }
+
+    function test_permit_standardWalletFlow_endToEnd() public {
+        uint256 value = 1234e18;
+        uint256 deadline = block.timestamp + 30 minutes;
+        uint256 nonce = token.nonces(owner); // the only on-chain read a wallet does
+
+        bytes32 domainSeparator = keccak256(
+            abi.encode(
+                keccak256(
+                    "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+                ),
+                keccak256(bytes("HuffToken")),
+                keccak256(bytes("1")),
+                block.chainid,
+                address(token)
+            )
+        );
+        bytes32 structHash = keccak256(
+            abi.encode(
+                keccak256(
+                    "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
+                ),
+                owner,
+                spender,
+                value,
+                nonce,
+                deadline
+            )
+        );
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(OWNER_PK, digest);
+
+        vm.expectEmit(true, true, false, true);
+        emit Approval(owner, spender, value);
+        token.permit(owner, spender, value, deadline, v, r, s);
+
+        assertEq(token.allowance(owner, spender), value, "permit did not set allowance");
+        assertEq(token.nonces(owner), nonce + 1, "permit did not consume the nonce");
+    }
+
     // ── permit with an out-of-range v recovers a bogus signer → revert ──────
     function test_permit_invalidV_reverts() public {
         uint256 value = 1000e18;

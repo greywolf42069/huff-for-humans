@@ -420,8 +420,10 @@
         0x44 calldataload swap1 sstore
 
         // event Approval(owner, spender, value)
+        // log3 takes topic1 then topic2 off the stack top-down, so owner must
+        // sit above spender → push spender first, then owner.
         0x44 calldataload 0x00 mstore
-        0x04 calldataload 0x24 calldataload
+        0x24 calldataload 0x04 calldataload
         [APPROVAL_TOPIC]
         0x20 0x00 log3
         stop
