@@ -19,7 +19,8 @@ opcodes, a human brain, and the Huff compiler.
   interoperable with standard wallets/libraries (ethers, viem, MetaMask, OpenZeppelin)
 - **EIP-712 domain separator** computed at deploy time from `chainid` and `address`
 
-Runtime bytecode: **1823 bytes** (creation: 1975 bytes). Compiled with `huffc 0.3.2`.
+Runtime bytecode: **1829 bytes** (creation: 1981 bytes). Compiled with `huffc 0.3.2`.
+All functions are **nonpayable** — ETH sent with any call reverts (no trapped funds).
 
 ## Toolchain
 
@@ -84,11 +85,11 @@ docs-old/                     <- Original "Huff for Humans" PWA tutorial
 
 ## Test Suite
 
-**90 tests across 3 suites. 0 failures.**
+**93 tests across 3 suites. 0 failures.**
 
 ```
 test/SimpleHuffToken.t.sol  — 68 tests  (smoke, ERC-20 units, events, permit, fuzz, monkey)
-test/Audit.t.sol            — 18 tests  (EIP-712/2612 standards compliance, malleability,
+test/Audit.t.sol            — 21 tests  (EIP-712/2612 standards compliance, malleability,
                                           nonce sequencing, arithmetic limits, conservation)
 test/Debug.t.sol            —  4 tests  (raw low-level call harness)
 ```
@@ -99,11 +100,12 @@ typehash fails CI immediately.
 
 ## Audit
 
-See [`AUDIT.md`](./AUDIT.md) for the full findings. Three bugs were found and fixed:
+See [`AUDIT.md`](./AUDIT.md) for the full findings. Four bugs were found and fixed:
 two **High-severity** EIP-2612 interoperability bugs (incorrect `PERMIT_TYPEHASH` and an
-incorrectly-padded name/version hash in the domain separator) and one **Medium** event
-bug (`permit` emitted `Approval` with `owner`/`spender` swapped), plus documented known
-limitations.
+incorrectly-padded name/version hash in the domain separator), one **Medium** event bug
+(`permit` emitted `Approval` with `owner`/`spender` swapped), and one **Low** issue
+(functions accepted ETH despite being `nonpayable`, which could trap funds), plus
+documented known limitations.
 
 ## License
 

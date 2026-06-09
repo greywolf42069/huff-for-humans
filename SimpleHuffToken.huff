@@ -57,6 +57,10 @@
 
 // ========== MAIN ==========
 #define macro MAIN() = takes(0) returns(0) {
+    // Reject ETH: every function is nonpayable. Without this, value sent with a
+    // call would be silently accepted and locked forever (no withdraw path).
+    callvalue notPayable jumpi
+
     0x04 calldatasize lt shortCalldata jumpi
 
     0x00 calldataload 0xe0 shr
@@ -80,7 +84,9 @@
     dup1 __FUNC_SIG(DOMAIN_SEPARATOR)  eq do_domainSep         jumpi
 
     0x00 0x00 revert
-    shortCalldata: 0x00 0x00 revert
+    shortCalldata:
+    notPayable:
+        0x00 0x00 revert
 
     // ───────── VIEW FUNCTIONS ─────────
 
